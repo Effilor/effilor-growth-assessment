@@ -1,0 +1,22 @@
+{
+  "name": "effilor-growth-assessment",
+  "version": "1.0.0",
+  "description": "Effilor Growth Assessment - Lead magnet for strategic growth diagnostics",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"No tests specified\""
+  },
+  "dependencies": {
+    "@sendgrid/mail": "^7.7.0"
+  },
+  "keywords": [
+    "assessment",
+    "growth",
+    "leadership",
+    "strategy",
+    "effilor"
+  ],
+  "author": "Effilor Consulting Services",
+  "license": "UNLICENSED",
+  "private": true
+}

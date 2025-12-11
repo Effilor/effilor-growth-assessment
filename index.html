@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Effilor Growth Assessment</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+        .answer-option {
+            transition: all 0.2s ease;
+        }
+        .answer-option:hover {
+            transform: translateX(4px);
+            background-color: #f9fafb;
+        }
+        .answer-option.selected {
+            background-color: #6B3D7A;
+            color: white;
+            border-color: #6B3D7A;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .pillar-bar {
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div id="app" class="min-h-screen"></div>
+
+    <script>
+        // Logo URL - referencing external file
+        const LOGO_URL = "./effilor-logo.jpg";
+
+        // Assessment data
+        const ASSESSMENT_DATA = {
+            title: "Effilor Growth Assessment",
+            tagline: "Discover your organisation's capacity for strategic growth",
+            description: "This diagnostic helps you examine the fundamentals that determine whether your organisation can scale with clarity, discipline, and consistency. It takes about 10-12 minutes but offers a level of introspection leaders rarely give themselves.",
+            totalQuestions: 28,
+            
+            pillars: [
+                {
+                    name: "Clarity of Strategy",
+                    description: "Measures the quality and alignment of strategic choices across leadership",
+                    maxScore: 20
+                },
+                {
+                    name: "Customer & Market Orientation",
+                    description: "Measures the depth of customer insight and competitive positioning",
+                    maxScore: 25
+                },
+                {
+                    name: "Revenue Engine Performance",
+                    description: "Measures predictability and effectiveness of revenue generation",
+                    maxScore: 20
+                },
+                {
+                    name: "Organisation & Leadership Strength",
+                    description: "Measures leadership quality and talent density",
+                    maxScore: 25
+                },
+                {
+                    name: "Operating Model & Execution Discipline",
+                    description: "Measures systems, processes, technology leverage, and execution consistency",
+                    maxScore: 30
+                },
+                {
+                    name: "High-Performance Behaviours",
+                    description: "Measures accountability, truth-telling, and performance culture",
+                    maxScore: 20
+                }
+            ],
+            
+            questions: [
+                // Pillar 1: Clarity of Strategy (Q1-4)
+                { pillar: 0, text: "How clearly can every senior leader articulate our top three priorities for the next 12–18 months?" },
+                { pillar: 0, text: "How confident am I that our strategy reflects external reality rather than internal preferences?" },
+                { pillar: 0, text: "To what extent do we have a shared understanding of the few bets that will truly move the needle?" },
+                { pillar: 0, text: "How rigorously do we stop or redesign initiatives that no longer align with strategy?" },
+                
+                // Pillar 2: Customer & Market Orientation (Q5-9)
+                { pillar: 1, text: "How systematically do we gather insights from customers beyond internal assumptions or anecdotal feedback?" },
+                { pillar: 1, text: "How well do we understand the real drivers of buying behaviour in our markets?" },
+                { pillar: 1, text: "How accurately do we read and respond to customer priorities in competitive situations?" },
+                { pillar: 1, text: "How differentiated and relevant is our value proposition compared to alternatives?" },
+                { pillar: 1, text: "How much pricing power do we have - can we maintain or increase prices without significant customer defection?" },
+                
+                // Pillar 3: Revenue Engine Performance (Q10-13)
+                { pillar: 2, text: "How predictable and stable is our pipeline from quarter to quarter?" },
+                { pillar: 2, text: "How consistently do we qualify out opportunities that we should not pursue?" },
+                { pillar: 2, text: "How effectively do teams collaborate to shape, price, and defend deals or proposals?" },
+                { pillar: 2, text: "How confident am I in our ability to grow revenue without relying on a few high-performers?" },
+                
+                // Pillar 4: Organisation & Leadership Strength (Q14-18)
+                { pillar: 3, text: "How well do leaders handle difficult conversations that affect performance or alignment?" },
+                { pillar: 3, text: "How quickly do we address emerging problems before they escalate?" },
+                { pillar: 3, text: "How aligned are leaders across functions on what \"good\" looks like?" },
+                { pillar: 3, text: "How strong is our bench of managers who can take on larger, more complex roles?" },
+                { pillar: 3, text: "What percentage of our team would we enthusiastically rehire if building the organization from scratch today?" },
+                
+                // Pillar 5: Operating Model & Execution Discipline (Q19-24)
+                { pillar: 4, text: "How consistently do teams meet commitments without last-minute firefighting?" },
+                { pillar: 4, text: "How effective are our rhythms for planning, review, and cross-functional problem-solving?" },
+                { pillar: 4, text: "How often do initiatives get completed versus abandoned midway?" },
+                { pillar: 4, text: "How well do our processes and structures support growth rather than slow it down?" },
+                { pillar: 4, text: "What percentage of your team is actively using AI tools (not just aware of them) to measurably improve their work?" },
+                { pillar: 4, text: "How often do we pilot new technologies and scale the successful ones versus endlessly discussing and planning?" },
+                
+                // Pillar 6: High-Performance Behaviours (Q25-28)
+                { pillar: 5, text: "How consistently do leaders address performance issues early instead of avoiding them?" },
+                { pillar: 5, text: "How often do teams challenge assumptions, timelines, or risks in the room rather than afterwards?" },
+                { pillar: 5, text: "How reliably do individuals follow through on commitments without supervision?" },
+                { pillar: 5, text: "How strongly do we reward truth-telling, accountability, and disciplined execution over politeness and conformity?" }
+            ],
+            
+            answerOptions: [
+                { text: "Rarely/Not at all", value: 1 },
+                { text: "Sometimes/Inconsistently", value: 2 },
+                { text: "About half the time", value: 3 },
+                { text: "Usually/Most of the time", value: 4 },
+                { text: "Consistently/Always", value: 5 }
+            ],
+            
+            scoreRanges: [
+                {
+                    min: 28, max: 65,
+                    label: "Foundation Stage",
+                    color: "#ef4444",
+                    feedback: "Your organisation is in the early stages of building the capabilities required for strategic growth. The assessment reveals significant gaps across multiple dimensions - from strategic clarity to execution discipline. Growth at this stage is fragile, driven by individual heroics, market luck, or one-off wins rather than systematic capability. Leadership spends more time firefighting than building. The cost of staying at this level becomes exponential as you attempt to scale - what worked to get you here will actively work against you beyond a certain threshold. The path forward requires honest diagnosis and deliberate investment in building the basics: clarify strategy, establish revenue discipline, strengthen leadership capability, and create execution rhythms. This is uncomfortable work because it requires admitting current limitations and making hard choices about where to focus."
+                },
+                {
+                    min: 66, max: 102,
+                    label: "Scaling Challenges",
+                    color: "#f59e0b",
+                    feedback: "Your organisation demonstrates capability in some growth dimensions but faces inconsistency across others. This is the most common - and most dangerous - stage for mid-market organisations. You've likely experienced periods of strong growth followed by plateaus or operational chaos. The core issue is \"selective discipline\" - your organisation executes well in areas leadership pays attention to, but falters elsewhere. Strategic priorities may be clear to senior leaders but fuzzy at middle management. This inconsistency creates hidden costs: talented people leave because success depends on who you work for rather than how the organisation operates; growth requires constant hands-on leadership involvement; mistakes get repeated because learning doesn't transfer. The danger of this stage is complacency - revenue growth can mask underlying weaknesses until it doesn't. Moving to the next level requires confronting uncomfortable truths about which capabilities are actually strong versus merely adequate."
+                },
+                {
+                    min: 103, max: 140,
+                    label: "Growth Ready",
+                    color: "#10b981",
+                    feedback: "Your organisation demonstrates strong capacity for strategic growth across most dimensions. Strategic clarity cascades through the organisation, customer insights actively inform decisions, revenue generation shows discipline and predictability, leadership handles complexity effectively, execution is reliable without heroics, and performance standards are clear and enforced. This level of capability is rare because it requires years of deliberate investment in the unglamorous fundamentals while resisting shortcuts. However, strength creates its own risks. Successful organisations often become insular, mistaking current capability for permanent advantage. Markets shift, customer expectations evolve, competitors learn from your playbook, and talent expectations change. The disciplines that got you here need continuous renewal to stay relevant. The challenge at this stage is maintaining the restlessness that built these capabilities in the first place - use this strong foundation to take calculated risks and continuously challenge your own operating assumptions."
+                }
+            ],
+            
+            pillarFeedback: [
+                // Pillar 1: Clarity of Strategy
+                [
+                    { min: 16, max: 20, feedback: "Strategic clarity is a genuine strength - senior leaders articulate priorities consistently, strategy reflects external reality, and you demonstrate discipline in stopping non-aligned initiatives. This clarity creates tremendous leverage because decisions get made faster, resources align naturally, and people understand how their work connects to what matters. Most organisations struggle with strategic clarity throughout their lifecycle, creating confusion, misalignment, and wasted effort. Your challenge now is maintaining this clarity as complexity increases and ensuring it cascades effectively through middle management to frontline teams." },
+                    { min: 12, max: 15, feedback: "Strategic clarity exists at senior levels but with notable inconsistency. Leaders can articulate priorities but the articulation varies in precision and emphasis. You stop some non-aligned initiatives but not rigorously enough - projects that should die linger, consuming resources and creating confusion. This partial clarity is dangerous because it creates an illusion of alignment while allowing significant drift in execution. The gap between what leadership thinks is clear and what teams actually understand is probably larger than you realize." },
+                    { min: 8, max: 11, feedback: "Strategic clarity is inconsistent across your organisation. While priorities may exist on paper, they don't effectively guide daily decisions or resource allocation. Initiatives accumulate rather than getting stopped, spreading resources thin and confusing teams about what actually matters. This level of strategic muddiness creates compounding problems: talent gets frustrated by changing priorities, customers experience inconsistent value propositions, and resources get wasted on efforts that don't build competitive advantage. Strategic clarity begins with strategic choices - accepting trade-offs rather than pursuing everything." },
+                    { min: 4, max: 7, feedback: "Strategic clarity is a significant gap. Senior leaders struggle to articulate consistent priorities, and when they do, those priorities often reflect internal preferences rather than external market reality. You have difficulty identifying which few bets will truly move the needle, leading to resource fragmentation and initiative overload. This lack of clarity cascades through the organisation, creating confusion, misalignment, and cynicism. Without strategic clarity, every other capability dimension struggles because effort isn't focused on what actually matters." }
+                ],
+                // Pillar 2: Customer & Market Orientation
+                [
+                    { min: 20, max: 25, feedback: "Your organisation demonstrates sophisticated understanding of customers and markets. You gather customer insights systematically, understand the real drivers of buying behaviour, and maintain meaningful pricing power. This depth of insight allows you to win business by addressing priorities competitors miss. This customer orientation is a competitive advantage that compounds over time - the more you understand customers, the better your strategy, the more effective your revenue engine. Your challenge is ensuring this systematic customer insight continues to inform strategy and decisions rather than becoming a data-gathering exercise disconnected from action." },
+                    { min: 15, max: 19, feedback: "You gather customer insights with reasonable consistency but gaps exist in how systematically you do this and how effectively insights inform decisions. You understand some drivers of buying behaviour but may miss nuances or emerging patterns. Your value proposition is relevant but may lack the differentiation that comes from truly understanding customer priorities better than alternatives. This partial customer orientation creates risk: you're responsive enough to maintain current business but not insightful enough to anticipate shifts or create breakthrough value propositions. The gap shows up in missed opportunities and competitive losses that surprise you." },
+                    { min: 10, max: 14, feedback: "Customer and market understanding is based more on internal assumptions than systematic insight. You gather some customer feedback but it tends to be anecdotal, reactive, or filtered through the lens of what you want to hear. This leads to misreading customer priorities, losing business for reasons that seem puzzling, and value propositions that reflect your perspective rather than customer needs. This inside-out orientation becomes increasingly dangerous as markets evolve and competition intensifies. You're vulnerable to competitors who invest in deeper customer insight and to market shifts you don't see coming." },
+                    { min: 5, max: 9, feedback: "Your organisation operates largely on internal assumptions about customers and markets rather than systematic insight. This inside-out orientation means you fundamentally misunderstand why customers buy, what they actually value, and how their priorities are evolving. You lose business without understanding why and build value propositions that reflect your capabilities rather than customer needs. This lack of customer orientation creates a dangerous feedback loop: without insight, you make poor strategic choices; poor choices lead to disappointing results; disappointing results make you even more internally focused. Breaking this cycle requires direct, unfiltered exposure to customers for senior leaders." }
+                ],
+                // Pillar 3: Revenue Engine Performance
+                [
+                    { min: 16, max: 20, feedback: "Your revenue engine demonstrates discipline and predictability that most mid-market organisations lack. Pipeline stability indicates systematic lead generation rather than reliance on lucky breaks. You consistently qualify out poor-fit opportunities, cross-functional collaboration is effective, and revenue growth doesn't depend on a handful of high performers. This is rare and valuable. Your challenge now is maintaining this discipline as you scale and ensuring these systems continue to evolve with market changes rather than ossifying into rigid processes." },
+                    { min: 12, max: 15, feedback: "Your revenue engine performs adequately but with notable gaps in discipline and predictability. Pipeline exists but stability varies between quarters. Qualification happens inconsistently, leading to wasted effort on opportunities you shouldn't pursue. Teams collaborate on deals but effectiveness varies based on individuals rather than reliable process. Revenue growth still depends meaningfully on a few high performers. This partial discipline creates hidden inefficiency: effort gets wasted, deals take longer than they should, and forecasting is more hope than science." },
+                    { min: 8, max: 11, feedback: "Revenue generation shows significant inconsistency in both approach and results. Pipeline predictability is elusive, qualification discipline is weak, and deals get shaped reactively based on customer requests. Revenue growth depends heavily on a few high performers compensating for weaker performers and immature processes. This lack of discipline creates multiple problems: unpredictable revenue makes planning difficult, poor qualification wastes resources, and reactive deal shaping commoditizes your value proposition. You need to stop accepting \"making the number\" as success and start examining how the number gets made." },
+                    { min: 4, max: 7, feedback: "Your revenue engine lacks fundamental discipline and predictability. Pipeline is volatile and unreliable, qualification is minimal or non-existent, and revenue depends almost entirely on one or two high performers creating enormous fragility. This lack of systematic commercial capability means growth is both unpredictable and unsustainable. You're working extremely hard but without the leverage that comes from disciplined process. The path forward requires establishing qualification criteria and having the discipline to use them, developing consistent methodologies, and creating forecasting discipline based on data rather than hope." }
+                ],
+                // Pillar 4: Organisation & Leadership Strength
+                [
+                    { min: 20, max: 25, feedback: "Leadership quality is a significant strength. Leaders handle difficult conversations effectively, emerging problems get tackled quickly, functional alignment is strong, and your management bench is developing depth. Most tellingly, you'd enthusiastically rehire the vast majority of your team if building from scratch. This leadership capability creates significant competitive advantage because it allows you to scale without the chaos that plagues most growing organisations. Your challenge is maintaining this strength as you promote people into leadership roles and as complexity increases - keep building your bench deeper." },
+                    { min: 15, max: 19, feedback: "Leadership capability is reasonable but with notable inconsistency. Some leaders handle difficult conversations effectively while others avoid them. Problem-solving is sometimes proactive but often reactive. Functional alignment exists on major issues but breaks down on day-to-day decisions. Your management bench has some depth but also concerning gaps, and honest assessment reveals you wouldn't enthusiastically rehire everyone. This uneven leadership capability creates friction and limits scale - strong leaders compensate for weak ones, creating overload and frustration. The path forward requires honest assessment followed by difficult choices about development versus changes." },
+                    { min: 10, max: 14, feedback: "Leadership capability is inconsistent and limiting your organisation's growth potential. Difficult conversations get avoided or handled poorly, problems typically escalate before getting addressed, and leadership alignment is weak. Your management bench is thin, and significant portions of the team wouldn't make the cut if you were building from scratch. This leadership gap shows up everywhere: talented people leave because leadership doesn't address obvious problems, execution suffers because standards vary, and dysfunction persists because no one confronts it directly. Improving leadership capability requires developing current leaders while making hard decisions about who can grow with the company." },
+                    { min: 5, max: 9, feedback: "Leadership capability is a critical weakness. Difficult conversations rarely happen, problems escalate into crises, leadership alignment is poor, your management bench is weak, and honest assessment reveals you'd replace most of the team if starting fresh. This leadership gap is probably your primary constraint to growth - without capable leadership, every other capability dimension suffers. You cannot scale the organisation in its current state. Leadership must confront hard realities about current capability and willingness to make personnel changes if development isn't happening quickly enough." }
+                ],
+                // Pillar 5: Operating Model & Execution Discipline
+                [
+                    { min: 24, max: 30, feedback: "Your organisation demonstrates execution discipline that sets you apart. Teams meet commitments consistently without firefighting, operating rhythms work effectively, initiatives get completed, processes support growth, and you're actively leveraging AI and technology to improve productivity. This execution capability creates compound value: work gets done efficiently, teams can plan because commitments are reliable, and complexity doesn't automatically create chaos. Your challenge is evolving your operating model to match increasing complexity while maintaining core discipline. Watch for warning signs: meetings that feel less productive, initiatives that lose momentum, processes that feel bureaucratic." },
+                    { min: 18, max: 23, feedback: "Execution discipline exists but with concerning inconsistency. Teams mostly meet commitments but often through last-minute heroics. Operating rhythms exist but effectiveness varies. Some initiatives get completed while others drift. Technology adoption is happening but impact is unclear. This partial discipline allows you to deliver but at higher cost and with more stress than necessary. The gap between your best-executing teams and average teams is probably larger than it should be. Strengthen this by examining what your best teams do differently and making those practices systematic." },
+                    { min: 12, max: 17, feedback: "Execution discipline is weak, creating significant drag. Commitments frequently get missed, operating rhythms don't create real coordination, many initiatives get abandoned midway, and your processes often slow things down. Technology discussions happen but pilots rarely scale. This execution chaos creates multiple problems: planning becomes pointless because nothing sticks, talented people get frustrated, and resources get wasted on partially completed work. Improving requires confronting uncomfortable patterns: Why do commitments get missed? What's actually happening in planning cycles? Why do initiatives get abandoned?" },
+                    { min: 6, max: 11, feedback: "Operating discipline is fundamentally broken. Commitments are routinely missed with little consequence, last-minute firefighting is constant, operating rhythms are perfunctory, initiatives quietly die, processes actively slow work down, and technology is discussed but not adopted. This chaos prevents growth in multiple ways: you can't take on more complexity, talented people leave, customers experience unreliability, and strategic initiatives fail. Fixing this requires fundamental changes in how work gets planned, tracked, and delivered. Start with basics: realistic commitments, progress tracking, accountability for coordination." }
+                ],
+                // Pillar 6: High-Performance Behaviours
+                [
+                    { min: 16, max: 20, feedback: "Your organisation demonstrates performance culture that most mid-market organisations lack. Leaders consistently address performance issues early, teams challenge openly in real-time, individuals reliably follow through without supervision, and you reward truth-telling and accountability rather than political skill. This culture accelerates learning, enables faster decision-making, prevents small problems from becoming large ones, and attracts high-performers. Protect this culture fiercely as you scale - many organisations lose performance culture as they grow, with politics and consensus-seeking overwhelming the directness that made them successful." },
+                    { min: 12, max: 15, feedback: "Performance behaviours exist but with notable inconsistency. Some leaders address performance issues promptly while others avoid them. Teams sometimes challenge openly but often stay silent in meetings. Follow-through varies significantly by individual. Your organisation says it values truth-telling and accountability but actions are mixed. This partial performance culture creates confusion about real expectations and allows politics to grow in the gaps between stated values and lived behavior. Strengthen this by making standards more explicit and ensuring leadership models the behaviors you want." },
+                    { min: 8, max: 11, feedback: "Performance behaviours are inconsistent and often undermined. Leaders frequently avoid addressing performance issues, teams rarely challenge openly, follow-through varies wildly, and while your organisation may claim to value accountability, politeness and consensus-seeking often get rewarded more. This gap between stated values and lived behavior creates cynicism and enables mediocrity. Building genuine performance culture requires leadership to confront this hypocrisy: do you actually want directness, or comfort? Until leadership genuinely models performance behaviors, no amount of value statements will create culture change." },
+                    { min: 4, max: 7, feedback: "Performance culture is fundamentally weak. Leaders routinely avoid addressing performance issues, teams almost never challenge in real-time, follow-through is unreliable, and your organisation rewards political skill and conformity rather than truth-telling and accountability. This cultural weakness cascades through every other dimension. You cannot grow effectively without confronting this fundamental issue - adding volume to an organization that can't have honest performance conversations will only amplify dysfunction. Building performance culture starts with leadership making a hard choice: are you willing to accept the discomfort of direct conversation in exchange for organizational effectiveness?" }
+                ]
+            ]
+        };
+
+        // App state
+        let state = {
+            screen: 'welcome',
+            currentQuestion: 0,
+            answers: new Array(ASSESSMENT_DATA.totalQuestions).fill(null),
+            userData: {}
+        };
+
+        // Render functions
+        function render() {
+            const app = document.getElementById('app');
+            app.innerHTML = '';
+            app.className = 'min-h-screen fade-in';
+            
+            switch(state.screen) {
+                case 'welcome':
+                    renderWelcome(app);
+                    break;
+                case 'questions':
+                    renderQuestion(app);
+                    break;
+                case 'results':
+                    renderResults(app);
+                    break;
+                case 'email-capture':
+                    renderEmailCapture(app);
+                    break;
+                case 'thank-you':
+                    renderThankYou(app);
+                    break;
+            }
+        }
+
+        function renderWelcome(container) {
+            container.innerHTML = `
+                <div class="max-w-4xl mx-auto px-4 py-12">
+                    <div class="text-center mb-12">
+                        <img src="${LOGO_URL}" alt="Effilor" class="mx-auto mb-8" style="width: 300px; height: auto;">
+                        <h1 class="text-4xl font-bold text-gray-900 mb-4">${ASSESSMENT_DATA.title}</h1>
+                        <p class="text-xl text-gray-600 mb-8">${ASSESSMENT_DATA.tagline}</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                        <p class="text-lg text-gray-700 mb-6">${ASSESSMENT_DATA.description}</p>
+                        
+                        <div class="grid md:grid-cols-3 gap-6 mb-8">
+                            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                <div class="text-3xl font-bold text-purple-700 mb-2">${ASSESSMENT_DATA.totalQuestions}</div>
+                                <div class="text-sm text-gray-600">Questions</div>
+                            </div>
+                            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                <div class="text-3xl font-bold text-purple-700 mb-2">10-12</div>
+                                <div class="text-sm text-gray-600">Minutes</div>
+                            </div>
+                            <div class="text-center p-4 bg-purple-50 rounded-lg">
+                                <div class="text-3xl font-bold text-purple-700 mb-2">${ASSESSMENT_DATA.pillars.length}</div>
+                                <div class="text-sm text-gray-600">Growth Pillars</div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-8">
+                            <h3 class="text-lg font-semibold text-gray-900 mb-4">What You'll Discover:</h3>
+                            <ul class="space-y-3">
+                                ${ASSESSMENT_DATA.pillars.map(pillar => `
+                                    <li class="flex items-start">
+                                        <svg class="w-6 h-6 text-purple-600 mr-3 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                        </svg>
+                                        <div>
+                                            <div class="font-semibold text-gray-900">${pillar.name}</div>
+                                            <div class="text-sm text-gray-600">${pillar.description}</div>
+                                        </div>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        
+                        <button onclick="startAssessment()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-semibold py-4 px-8 rounded-lg text-lg transition duration-200">
+                            Begin Assessment
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderQuestion(container) {
+            const question = ASSESSMENT_DATA.questions[state.currentQuestion];
+            const progress = ((state.currentQuestion + 1) / ASSESSMENT_DATA.totalQuestions) * 100;
+            
+            container.innerHTML = `
+                <div class="max-w-3xl mx-auto px-4 py-8">
+                    <div class="text-center mb-8">
+                        <img src="${LOGO_URL}" alt="Effilor" class="mx-auto mb-6" style="width: 120px; height: auto;">
+                    </div>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-center mb-2">
+                            <span class="text-sm font-medium text-gray-600">Question ${state.currentQuestion + 1} of ${ASSESSMENT_DATA.totalQuestions}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div class="progress-bar bg-purple-700 h-2 rounded-full" style="width: ${progress}%"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-8 mb-6">
+                        <h2 class="text-2xl font-semibold text-gray-900 mb-8 text-center">${question.text}</h2>
+                        
+                        <div class="space-y-3">
+                            ${ASSESSMENT_DATA.answerOptions.map((option, index) => `
+                                <button 
+                                    onclick="selectAnswer(${option.value})"
+                                    class="answer-option w-full text-left p-4 border-2 rounded-lg ${state.answers[state.currentQuestion] === option.value ? 'selected' : 'border-gray-200'}"
+                                >
+                                    <span class="text-lg">${option.text}</span>
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                    
+                    ${state.currentQuestion > 0 ? `
+                        <button onclick="previousQuestion()" class="text-purple-700 hover:text-purple-800 font-medium">
+                            ← Previous Question
+                        </button>
+                    ` : ''}
+                </div>
+            `;
+        }
+
+        function renderResults(container) {
+            const scores = calculateScores();
+            const scoreRange = getScoreRange(scores.total);
+            const pillarScores = scores.pillars;
+            
+            // Find top strength and priority area
+            const pillarPercentages = pillarScores.map((score, idx) => ({
+                name: ASSESSMENT_DATA.pillars[idx].name,
+                score: score,
+                max: ASSESSMENT_DATA.pillars[idx].maxScore,
+                percentage: (score / ASSESSMENT_DATA.pillars[idx].maxScore) * 100
+            }));
+            
+            const topStrength = pillarPercentages.reduce((max, p) => p.percentage > max.percentage ? p : max);
+            const priorityArea = pillarPercentages.reduce((min, p) => p.percentage < min.percentage ? p : min);
+            
+            container.innerHTML = `
+                <div class="max-w-5xl mx-auto px-4 py-12">
+                    <div class="text-center mb-8">
+                        <img src="${LOGO_URL}" alt="Effilor" class="mx-auto mb-6" style="width: 150px; height: auto;">
+                        <h1 class="text-4xl font-bold text-gray-900 mb-4">Your Growth Assessment Results</h1>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                        <div class="text-center mb-8">
+                            <div class="text-6xl font-bold mb-2" style="color: ${scoreRange.color}">${scores.total}</div>
+                            <div class="text-2xl text-gray-600 mb-2">out of 140 points</div>
+                            <div class="inline-block px-6 py-2 rounded-full text-white font-semibold text-lg" style="background-color: ${scoreRange.color}">
+                                ${scoreRange.label}
+                            </div>
+                        </div>
+                        
+                        <div class="prose max-w-none mb-8">
+                            <p class="text-lg text-gray-700 leading-relaxed">${scoreRange.feedback}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-6 mb-8">
+                        <div class="bg-green-50 border-2 border-green-200 rounded-lg p-6">
+                            <div class="flex items-center mb-3">
+                                <svg class="w-6 h-6 text-green-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                                </svg>
+                                <h3 class="text-lg font-semibold text-green-900">Top Strength</h3>
+                            </div>
+                            <div class="text-2xl font-bold text-green-900 mb-2">${topStrength.name}</div>
+                            <div class="text-green-700">${topStrength.score}/${topStrength.max} points (${Math.round(topStrength.percentage)}%)</div>
+                        </div>
+                        
+                        <div class="bg-orange-50 border-2 border-orange-200 rounded-lg p-6">
+                            <div class="flex items-center mb-3">
+                                <svg class="w-6 h-6 text-orange-600 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                                <h3 class="text-lg font-semibold text-orange-900">Priority Area</h3>
+                            </div>
+                            <div class="text-2xl font-bold text-orange-900 mb-2">${priorityArea.name}</div>
+                            <div class="text-orange-700">${priorityArea.score}/${priorityArea.max} points (${Math.round(priorityArea.percentage)}%)</div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-8 mb-8">
+                        <h2 class="text-2xl font-bold text-gray-900 mb-6">Your Growth Pillar Breakdown</h2>
+                        
+                        <div class="space-y-6">
+                            ${ASSESSMENT_DATA.pillars.map((pillar, idx) => {
+                                const score = pillarScores[idx];
+                                const percentage = (score / pillar.maxScore) * 100;
+                                const feedback = getPillarFeedback(idx, score);
+                                
+                                return `
+                                    <div class="border-b border-gray-200 pb-6 last:border-b-0">
+                                        <div class="flex justify-between items-center mb-3">
+                                            <h3 class="text-lg font-semibold text-gray-900">${pillar.name}</h3>
+                                            <span class="text-lg font-bold text-purple-700">${score}/${pillar.maxScore}</span>
+                                        </div>
+                                        
+                                        <div class="w-full bg-gray-200 rounded-full h-3 mb-3">
+                                            <div class="pillar-bar bg-purple-700 h-3 rounded-full" style="width: ${percentage}%"></div>
+                                        </div>
+                                        
+                                        <p class="text-gray-700 leading-relaxed">${feedback}</p>
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                    
+                    <div class="bg-purple-50 border-2 border-purple-200 rounded-lg p-8 text-center">
+                        <h3 class="text-2xl font-bold text-gray-900 mb-4">Want a Copy of Your Results?</h3>
+                        <p class="text-lg text-gray-700 mb-6">Get a comprehensive report with your complete assessment results, recommendations and actionable next steps tailored to your organisation's growth profile.</p>
+                        <button onclick="showEmailCapture()" class="bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 px-8 rounded-lg text-lg transition duration-200">
+                            Get My Full Report
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderEmailCapture(container) {
+            container.innerHTML = `
+                <div class="max-w-2xl mx-auto px-4 py-12">
+                    <div class="text-center mb-8">
+                        <img src="${LOGO_URL}" alt="Effilor" class="mx-auto mb-6" style="width: 150px; height: auto;">
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Get Your Comprehensive Report</h2>
+                        <p class="text-lg text-gray-600">We'll email you a detailed analysis within 24 hours</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <form id="emailForm" onsubmit="submitForm(event)">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                                    <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent" />
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Email Address *</label>
+                                    <input type="email" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent" />
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Organization Name *</label>
+                                    <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent" />
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Job Role/Title *</label>
+                                    <input type="text" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent" />
+                                </div>
+                                
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 mb-2">Phone Number (Optional)</label>
+                                    <input type="tel" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-600 focus:border-transparent" />
+                                </div>
+                            </div>
+                            
+                            <button type="submit" class="w-full mt-6 bg-purple-700 hover:bg-purple-800 text-white font-semibold py-3 px-8 rounded-lg text-lg transition duration-200">
+                                Send My Report
+                            </button>
+                            
+                            <p class="text-xs text-gray-500 text-center mt-4">
+                                Your information will be used solely to send you the report and will be handled according to our privacy policy.
+                            </p>
+                        </form>
+                    </div>
+                    
+                    <div class="text-center mt-6">
+                        <button onclick="backToResults()" class="text-purple-700 hover:text-purple-800 font-medium">
+                            ← Back to Results
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function renderThankYou(container) {
+            container.innerHTML = `
+                <div class="max-w-2xl mx-auto px-4 py-12">
+                    <div class="text-center mb-8">
+                        <img src="${LOGO_URL}" alt="Effilor" class="mx-auto mb-6" style="width: 150px; height: auto;">
+                        
+                        <div class="bg-green-50 rounded-full w-20 h-20 flex items-center justify-center mx-auto mb-6">
+                            <svg class="w-12 h-12 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+                            </svg>
+                        </div>
+                        
+                        <h2 class="text-3xl font-bold text-gray-900 mb-4">Thank You, ${state.userData.name}!</h2>
+                        <p class="text-xl text-gray-600 mb-6">Your report is on its way</p>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow-lg p-8">
+                        <div class="space-y-4 mb-6">
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-purple-600 mr-3 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                                </svg>
+                                <div>
+                                    <p class="font-medium text-gray-900">We've received your submission</p>
+                                    <p class="text-sm text-gray-600">Report will be sent to: ${state.userData.email}</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-purple-600 mr-3 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <p class="font-medium text-gray-900">Expect your report within 24 hours</p>
+                                    <p class="text-sm text-gray-600">Our team will review your results and send you a personalized report</p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start">
+                                <svg class="w-6 h-6 text-purple-600 mr-3 flex-shrink-0 mt-1" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                                </svg>
+                                <div>
+                                    <p class="font-medium text-gray-900">Check your spam folder</p>
+                                    <p class="text-sm text-gray-600">Sometimes our emails end up there</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="border-t border-gray-200 pt-6">
+                            <h3 class="font-semibold text-gray-900 mb-2">Have questions?</h3>
+                            <p class="text-gray-600 mb-4">Reach out to us at:</p>
+                            <p class="text-purple-700 font-medium">shankar.ramamurthy@effilor.com</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Helper functions
+        function calculateScores() {
+            const pillarScores = new Array(ASSESSMENT_DATA.pillars.length).fill(0);
+            
+            ASSESSMENT_DATA.questions.forEach((question, idx) => {
+                const answer = state.answers[idx];
+                if (answer !== null) {
+                    pillarScores[question.pillar] += answer;
+                }
+            });
+            
+            const total = pillarScores.reduce((sum, score) => sum + score, 0);
+            
+            return { total, pillars: pillarScores };
+        }
+
+        function getScoreRange(score) {
+            return ASSESSMENT_DATA.scoreRanges.find(range => 
+                score >= range.min && score <= range.max
+            );
+        }
+
+        function getPillarFeedback(pillarIndex, score) {
+            const feedbackLevels = ASSESSMENT_DATA.pillarFeedback[pillarIndex];
+            const level = feedbackLevels.find(l => score >= l.min && score <= l.max);
+            return level ? level.feedback : '';
+        }
+
+        // Event handlers
+        function startAssessment() {
+            state.screen = 'questions';
+            state.currentQuestion = 0;
+            render();
+        }
+
+        function selectAnswer(value) {
+            state.answers[state.currentQuestion] = value;
+            
+            setTimeout(() => {
+                if (state.currentQuestion < ASSESSMENT_DATA.totalQuestions - 1) {
+                    state.currentQuestion++;
+                    render();
+                } else {
+                    state.screen = 'results';
+                    render();
+                }
+            }, 200);
+        }
+
+        function previousQuestion() {
+            if (state.currentQuestion > 0) {
+                state.currentQuestion--;
+                render();
+            }
+        }
+
+        function showEmailCapture() {
+            state.screen = 'email-capture';
+            render();
+        }
+
+        function backToResults() {
+            state.screen = 'results';
+            render();
+        }
+
+        async function submitForm(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            state.userData = {
+                name: formData.get('name') || form.elements[0].value,
+                email: formData.get('email') || form.elements[1].value,
+                organization: formData.get('organization') || form.elements[2].value,
+                role: formData.get('role') || form.elements[3].value,
+                phone: formData.get('phone') || form.elements[4].value
+            };
+            
+            const scores = calculateScores();
+            const scoreRange = getScoreRange(scores.total);
+            
+            const pillarDetails = ASSESSMENT_DATA.pillars.map((pillar, idx) => ({
+                name: pillar.name,
+                score: scores.pillars[idx],
+                maxScore: pillar.maxScore,
+                percentage: Math.round((scores.pillars[idx] / pillar.maxScore) * 100)
+            }));
+            
+            const questionResponses = ASSESSMENT_DATA.questions.map((q, idx) => ({
+                question: q.text,
+                pillar: ASSESSMENT_DATA.pillars[q.pillar].name,
+                answer: ASSESSMENT_DATA.answerOptions.find(opt => opt.value === state.answers[idx])?.text || 'Not answered',
+                points: state.answers[idx]
+            }));
+            
+            try {
+                const button = form.querySelector('button[type="submit"]');
+                button.disabled = true;
+                button.textContent = 'Sending...';
+                
+                const response = await fetch('/api/send-email', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userData: state.userData,
+                        scores: {
+                            total: scores.total,
+                            maxScore: 140,
+                            percentage: Math.round((scores.total / 140) * 100),
+                            level: scoreRange.label,
+                            pillars: pillarDetails
+                        },
+                        responses: questionResponses
+                    })
+                });
+                
+                if (response.ok) {
+                    state.screen = 'thank-you';
+                    render();
+                } else {
+                    throw new Error('Failed to send email');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('There was an error sending your report. Please try again or contact us at shankar.ramamurthy@effilor.com');
+                const button = form.querySelector('button[type="submit"]');
+                button.disabled = false;
+                button.textContent = 'Send My Report';
+            }
+        }
+
+        // Initialize app
+        render();
+    </script>
+</body>
+</html>
